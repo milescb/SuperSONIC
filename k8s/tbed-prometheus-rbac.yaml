@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: triton-example-prometheus-sa
+  namespace: mcochran-triton
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: triton-example
+    meta.helm.sh/release-namespace: mcochran-triton
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: triton-example-prometheus-role
+  namespace: mcochran-triton
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: triton-example
+    meta.helm.sh/release-namespace: mcochran-triton
+rules:
+  - apiGroups: [""]
+    resources: [pods, endpoints, services]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: triton-example-prometheus-role-binding
+  namespace: mcochran-triton
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: triton-example
+    meta.helm.sh/release-namespace: mcochran-triton
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: triton-example-prometheus-role
+subjects:
+  - kind: ServiceAccount
+    name: triton-example-prometheus-sa
+    namespace: mcochran-triton
