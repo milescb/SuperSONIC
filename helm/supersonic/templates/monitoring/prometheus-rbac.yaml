@@ -1,4 +1,4 @@
-{{- if and .Values.prometheus.enabled (not .Values.prometheus.external.enabled) }}
+{{- if and .Values.prometheus.enabled (not .Values.prometheus.external.enabled) (not ((.Values.prometheus.rbac).preInstall | default false)) }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

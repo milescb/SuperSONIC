@@ -1,7 +1,6 @@
 serverLoadThreshold: 100
 
 triton:
-  name: triton-example
   image: registry.cern.ch/triton-examples/triton-examples:simple-example-cpu_triton25.02
 
   command: ["/bin/sh", "-c"]
@@ -38,11 +37,19 @@ prometheus:
     create: false
   rbac:
     create: false
+    # Pre-install RBAC via helm template before running helm install:
+    #   helm template <release-name> ./helm/supersonic -n <namespace> \
+    #     -f values/values-tbed-atlas.yaml \
+    #     --show-only templates/monitoring/prometheus-rbac-preinstall.yaml \
+    #     | kubectl apply -f -
+    preInstall: true
   serviceAccounts:
     server:
       create: false
+      # Must match <release-name>-prometheus-sa; override with --set for a different release name
       name: triton-example-prometheus-sa
   server:
+    # Must match <release-name>-prometheus-role; override with --set for a different release name
     useExistingClusterRoleName: triton-example-prometheus-role
     image:
       repository: registry.cern.ch/prometheus-k8/prometheus
@@ -52,6 +59,7 @@ prometheus:
 grafana:
   enabled: true
   dashboardsConfigMaps:
+    # Must match <release-name>-grafana-default-dashboard; override with --set for a different release name
     default: triton-example-grafana-default-dashboard
   image:
     registry: registry.cern.ch
@@ -64,6 +72,7 @@ grafana:
           type: prometheus
           access: proxy
           isDefault: true
+          # Must match http://<release-name>-prometheus-server:9090; override with --set for a different release name
           url: http://triton-example-prometheus-server:9090
           jsonData:
             timeInterval: "5s"
