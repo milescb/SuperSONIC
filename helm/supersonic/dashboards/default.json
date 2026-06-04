@@ -118,7 +118,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "count by(release)(nv_gpu_utilization{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"})",
+          "expr": "count by(release)(nv_inference_exec_count{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"})",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -492,7 +492,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "count by(release)(nv_gpu_utilization{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"})",
+          "expr": "count by(release)(nv_inference_exec_count{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"})",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -1053,6 +1053,303 @@
       ],
       "title": "Inferences per second by model (all servers)",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "id": 21,
+      "panels": [],
+      "title": "Network Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "End-to-end latency split into three clean components that sum to the total: (1) Client↔Envoy wire = downstream_total − upstream_rq_time; (2) Envoy↔Triton wire = upstream_rq_time − Triton compute; (3) Triton compute = Queue+Input+Inference+Output. Total line shown as reference.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 60,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "custom.stacking",
+                "value": { "group": "A", "mode": "none" }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 34
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(sum(rate(nv_inference_compute_infer_duration_us{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) + sum(rate(nv_inference_queue_duration_us{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) + sum(rate(nv_inference_compute_input_duration_us{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) + sum(rate(nv_inference_compute_output_duration_us{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s]))) / (sum(rate(nv_inference_exec_count{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) * 1000)",
+          "instant": false,
+          "legendFormat": "Triton compute",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(sum(rate(envoy_cluster_upstream_rq_time_sum{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) / sum(rate(envoy_cluster_upstream_rq_time_count{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s]))) - ((sum(rate(nv_inference_compute_infer_duration_us{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) + sum(rate(nv_inference_queue_duration_us{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) + sum(rate(nv_inference_compute_input_duration_us{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) + sum(rate(nv_inference_compute_output_duration_us{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s]))) / (sum(rate(nv_inference_exec_count{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) * 1000))",
+          "instant": false,
+          "legendFormat": "Envoy↔Triton wire",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(sum(rate(envoy_http_downstream_rq_time_sum{envoy_http_conn_manager_prefix=\"ingress_grpc\", app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) / sum(rate(envoy_http_downstream_rq_time_count{envoy_http_conn_manager_prefix=\"ingress_grpc\", app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s]))) - (sum(rate(envoy_cluster_upstream_rq_time_sum{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) / sum(rate(envoy_cluster_upstream_rq_time_count{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])))",
+          "instant": false,
+          "legendFormat": "Client↔Envoy wire",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(envoy_http_downstream_rq_time_sum{envoy_http_conn_manager_prefix=\"ingress_grpc\", app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s])) / sum(rate(envoy_http_downstream_rq_time_count{envoy_http_conn_manager_prefix=\"ingress_grpc\", app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s]))",
+          "instant": false,
+          "legendFormat": "Total",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "title": "Latency by Network Leg",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Bytes/sec on each network leg: client↔Envoy (downstream) and Envoy↔Triton (upstream cluster)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 34
+      },
+      "id": 23,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(envoy_http_downstream_cx_rx_bytes_total{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s]))",
+          "instant": false,
+          "legendFormat": "RX client→Envoy",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(envoy_http_downstream_cx_tx_bytes_total{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s]))",
+          "instant": false,
+          "legendFormat": "TX Envoy→client",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(envoy_cluster_upstream_cx_tx_bytes_total{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s]))",
+          "instant": false,
+          "legendFormat": "TX Envoy→Triton",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(envoy_cluster_upstream_cx_rx_bytes_total{app=~\"supersonic\", release=~\"$release\", namespace=~\"$namespace\"}[30s]))",
+          "instant": false,
+          "legendFormat": "RX Triton→Envoy",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "title": "Network Throughput by Leg",
+      "type": "timeseries"
     }
   ],
   "preload": false,
@@ -1062,7 +1359,7 @@
   "templating": {
     "list": [
       {
-        "allowCustomValue": false,
+        "allowCustomValue": true,
         "current": {
           "text": ["sonic-server"],
           "value": ["sonic-server"]
