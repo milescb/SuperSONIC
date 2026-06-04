@@ -575,6 +575,17 @@
         "enabled": {
           "type": "boolean"
         },
+        "serviceMonitors": {
+          "type": "object",
+          "properties": {
+            "create": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "create"
+          ]
+        },
         "server": {
           "type": "object",
           "properties": {
@@ -852,7 +863,8 @@
         "pushgateway",
         "rbac",
         "server",
-        "serviceAccounts"
+        "serviceAccounts",
+        "serviceMonitors"
       ]
     },
     "grafana": {
