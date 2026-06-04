@@ -248,6 +248,10 @@ prometheus:
   # -- Enable or disable custom Prometheus deployment
   enabled: false
 
+  serviceMonitors:
+    # -- Set to false to skip creating ServiceMonitor resources (required when monitoring.coreos.com CRD access is restricted)
+    create: true
+
   server:
     extraFlags: [web.enable-remote-write-receiver]
     useExistingClusterRoleName: supersonic-prometheus-role # If installer plugin is used, this value is set by the plugin

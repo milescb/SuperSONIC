@@ -29,14 +29,14 @@ spec:
       containers:
       - name: envoy
         image: {{ .Values.envoy.image }}
+        {{- if (index .Values "opentelemetry-collector" "enabled") }}
         command:
           - sh
           - -c
           - |
-            apt-get update -y
-            apt-get install -y gettext-base
             envsubst < /etc/envoy/envoy.yaml > /tmp/envoy.yaml
             exec envoy -c /tmp/envoy.yaml
+        {{- end }}
         args: {{ toYaml .Values.envoy.args | nindent 10 }}
         env:
         - name: POD_NAME

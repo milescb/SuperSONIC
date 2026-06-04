@@ -1,0 +1,72 @@
+serverLoadThreshold: 100
+
+triton:
+  name: triton-example
+  image: registry.cern.ch/triton-examples/triton-examples:simple-example-cpu_triton25.02
+
+  command: ["/bin/sh", "-c"]
+  args:
+    - |
+      /opt/tritonserver/bin/tritonserver \
+      --model-repository=/opt/SimpleTritonExample/backend/models \
+      --log-verbose=1 \
+      --exit-on-error=true
+
+  replicas: 2
+  modelRepository:
+    enabled: false
+    storageType: cvmfs-pvc
+    mountPath: /cvmfs
+
+envoy:
+  enabled: true
+  image: "registry.cern.ch/envoy/envoy:v1.30.9"
+  loadBalancerPolicy: "ROUND_ROBIN"
+  ingress:
+    enabled: false
+
+keda:
+  enabled: false
+  minReplicaCount: 0
+  maxReplicaCount: 1
+
+prometheus:
+  external:
+    enabled: false
+  enabled: true
+  serviceMonitors:
+    create: false
+  rbac:
+    create: false
+  serviceAccounts:
+    server:
+      create: false
+      name: triton-example-prometheus-sa
+  server:
+    useExistingClusterRoleName: triton-example-prometheus-role
+    image:
+      repository: registry.cern.ch/prometheus-k8/prometheus
+      tag: v3.1.0
+
+
+grafana:
+  enabled: true
+  dashboardsConfigMaps:
+    default: triton-example-grafana-default-dashboard
+  image:
+    registry: registry.cern.ch
+    repository: grafana-test/grafana
+    tag: "11.2.10"
+  datasources:
+    datasources.yaml:
+      datasources:
+        - name: prometheus
+          type: prometheus
+          access: proxy
+          isDefault: true
+          url: http://triton-example-prometheus-server:9090
+          jsonData:
+            timeInterval: "5s"
+            tlsSkipVerify: true
+  ingress:
+    enabled: false
